@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traffic Signal</title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    #signal {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      border: 2px solid black;
+      padding: 15px;
+      border-radius: 15px;
+      background-color: #333;
+    }
+
+    #red,
+    #yellow,
+    #green {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      transition: background-color 0.7s;
+    }
+
+    #red.off,
+    #yellow.off,
+    #green.off {
+      background-color: grey;
+    }
+
+    #red {
+      background-color: red;
+    }
+
+    #yellow {
+      background-color: yellow;
+    }
+
+    #green {
+      background-color: green;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="signal">
+    <div id="red" class="off"></div>
+    <div id="yellow" class="off"></div>
+    <div id="green" class="off"></div>
+  </div>
+
+  <script>
+    // traffic signal
+    // green should blink for 10 sec
+    // yellow should blink for 5 sec
+    // red should blink for 20 sec
+    // loop
+
+    const signalTimes = {
+      red: 20,
+      yellow: 5,
+      green: 10,
+    };
+
+    let blinkInterval;
+
+    const blink = async (light, timePeriod) => {
+      clearInterval(blinkInterval);
+      return new Promise((resolve, reject) => {
+        blinkInterval = setInterval(() => {
+          // toggle the light
+          light.classList.toggle("off");
+        }, 1000);
+        setTimeout(() => {
+          light.classList.toggle("off", true);
+          clearInterval(blinkInterval);
+          resolve();
+        }, timePeriod * 1000);
+      });
+    };
+
+    const runInLoop = async () => {
+      while (true) {
+        for (const [color, timePeriod] of Object.entries(signalTimes)) {
+          const lightElement = document.getElementById(color);
+          await blink(lightElement, timePeriod);
+        }
+      }
+    };
+
+    runInLoop();
+  </script>
+</body>
+
+</html>
