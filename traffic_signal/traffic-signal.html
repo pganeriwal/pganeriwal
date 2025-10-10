@@ -31,23 +31,18 @@
       height: 50px;
       border-radius: 50%;
       transition: background-color 0.7s;
-    }
-
-    #red.off,
-    #yellow.off,
-    #green.off {
       background-color: grey;
     }
 
-    #red {
+    #red.on {
       background-color: red;
     }
 
-    #yellow {
+    #yellow.on {
       background-color: yellow;
     }
 
-    #green {
+    #green.on {
       background-color: green;
     }
   </style>
@@ -55,9 +50,9 @@
 
 <body>
   <div id="signal">
-    <div id="red" class="off"></div>
-    <div id="yellow" class="off"></div>
-    <div id="green" class="off"></div>
+    <div id="red"></div>
+    <div id="yellow"></div>
+    <div id="green"></div>
   </div>
 
   <script>
@@ -67,23 +62,67 @@
     // red should blink for 20 sec
     // loop
 
-    const signalTimes = {
-      red: 20,
-      yellow: 5,
-      green: 10,
-    };
+    const signals = [
+      {
+        lights: [
+          { color: "red", blink: false },
+          { color: "yellow", blink: true, delay: 6 },
+        ],
+        timePeriod: 12
+      },
+      {
+        lights: [
+          { color: "green", blink: false },
+        ],
+        timePeriod: 10
+      },
+      {
+        lights: [
+          { color: "yellow", blink: true },
+        ],
+        timePeriod: 6
+      },
+    ];
 
     let blinkInterval;
 
-    const blink = async (light, timePeriod) => {
-      clearInterval(blinkInterval);
+    const toggleLightOn = (light, on) => {
+      light.element = light.element || document.getElementById(light.color);
+      undefined === on
+        ? light.element.classList.toggle("on")
+        : light.element.classList.toggle("on", on);
+    };
+
+    const toggleLightsOn = (lights, on) => lights.forEach(light => {
+      toggleLightOn(light, on);
+    });
+
+    const blink = async ({ lights, timePeriod }) => {
       return new Promise((resolve, reject) => {
+        let blinkLights = [];
+
+        const switchOnAndBlinkLight = light => {
+          toggleLightOn(light, true);
+          light.blink && blinkLights.push(light);
+        };
+        // clear previous interval
+        clearInterval(blinkInterval);
+        // switch on all the lights with delay
+        lights.forEach(light => {
+          if (1 < light.delay) {
+            setTimeout(() => { switchOnAndBlinkLight(light); }, light.delay * 1000);
+          } else {
+            switchOnAndBlinkLight(light);
+          }
+        });
+
         blinkInterval = setInterval(() => {
           // toggle the light
-          light.classList.toggle("off");
+          toggleLightsOn(blinkLights);
         }, 1000);
+
         setTimeout(() => {
-          light.classList.toggle("off", true);
+          toggleLightsOn(lights, false);
           clearInterval(blinkInterval);
           resolve();
         }, timePeriod * 1000);
@@ -92,9 +131,8 @@
 
     const runInLoop = async () => {
       while (true) {
-        for (const [color, timePeriod] of Object.entries(signalTimes)) {
-          const lightElement = document.getElementById(color);
-          await blink(lightElement, timePeriod);
+        for (const signal of signals) {
+          await blink(signal);
         }
       }
     };
